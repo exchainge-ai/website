@@ -5,7 +5,8 @@
  * Files are stored as public blobs with unique blob IDs.
  */
 
-import { WalrusClient, WalrusFile } from "@mysten/walrus";
+import { WalrusClient } from "@mysten/walrus";
+import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 
 // Environment configuration
 const WALRUS_NETWORK = process.env.WALRUS_NETWORK || "testnet";
@@ -15,8 +16,15 @@ const WALRUS_EPOCHS = parseInt(process.env.WALRUS_EPOCHS || "5", 10);
  * Initialize Walrus client
  */
 export function getWalrusClient(): WalrusClient {
+  // Create Sui client for Walrus
+  const suiClient = new SuiClient({
+    url: getFullnodeUrl(WALRUS_NETWORK as "testnet" | "mainnet"),
+  });
+
+  // Create Walrus client with Sui client
   return new WalrusClient({
     network: WALRUS_NETWORK as "testnet" | "mainnet",
+    suiClient,
   });
 }
 
@@ -35,22 +43,14 @@ export async function uploadToWalrus(args: {
 }> {
   const client = getWalrusClient();
 
-  // Create Walrus file from buffer
-  const file = WalrusFile.from({
-    contents: new Uint8Array(args.fileBuffer),
-    identifier: args.filename,
-  });
-
-  // Upload to Walrus
-  const results = await client.walrus.writeFiles({
-    files: [file],
-    epochs: WALRUS_EPOCHS,
+  // Upload blob to Walrus
+  const result = await client.writeBlob({
+    blob: new Uint8Array(args.fileBuffer),
     deletable: true,
+    epochs: WALRUS_EPOCHS,
     signer: args.signer,
   });
 
-  // Extract blob ID from result
-  const result = results[0];
   if (!result || !result.blobId) {
     throw new Error("Failed to upload to Walrus");
   }
@@ -71,21 +71,18 @@ export async function getFromWalrus(blobId: string): Promise<{
 }> {
   const client = getWalrusClient();
 
-  // Read file by blob ID
-  const [file] = await client.walrus.getFiles({
-    ids: [blobId],
+  // Read blob by ID
+  const blob = await client.readBlob({
+    blobId,
   });
 
-  if (!file) {
+  if (!blob) {
     throw new Error(`Blob not found: ${blobId}`);
   }
 
-  // Get file contents as bytes
-  const bytes = await file.bytes();
-
   return {
-    data: Buffer.from(bytes),
-    metadata: file.metadata || {},
+    data: Buffer.from(blob),
+    metadata: {},
   };
 }
 
