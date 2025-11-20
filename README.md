@@ -1,22 +1,34 @@
 # ExchAInge
 
-Physical AI dataset marketplace with onchain licensing and verification.
+**Provably authentic physical AI datasets with atomic onchain licensing.**
+
+Built for hackathon - Data Economy & Marketplaces track.
 
 ## What This Is
 
-We built a marketplace where you can upload sensor data (drone footage, robot telemetry, whatever) and license it using blockchain-backed proof. Think of it as a way to prove "this dataset exists, I own it, and you have permission to use it" without needing lawyers or trust.
+A marketplace for physical AI training data (drone footage, robot telemetry, sensor logs) with blockchain-backed licensing that makes data **reliable, valuable, and governable**.
 
-For the Hackathon, we added **Sui Move smart contracts** for atomic license issuance. The idea is simple: datasets get registered onchain, licenses are NFTs, and access is provably granted via events. This pattern works on any chain with events and shared objects.
+The problem: AI companies need training data. Dataset creators need proof they own it and control who uses it. Current solutions rely on legal contracts and trust.
+
+Our solution: Onchain licensing using Sui Move. Upload a dataset, register its hash onchain, issue license NFTs to buyers. No lawyers, no ambiguity, just cryptographic proof.
+
+We built **atomic license issuance** where minting and ownership transfer happen in one transaction. The license is an NFT, ownership is native to Sui, and events create an immutable audit trail. This makes physical AI datasets provably authentic and traceable.
 
 ## Why It Matters
 
-The interoperability story is key here. Our architecture uses:
-- **Event-driven sync** - Backend listens for `LicenseIssued` events from any chain
-- **Chain-agnostic verification** - License verification checks the DB, which syncs from whatever chain you deployed on
-- **Atomic licensing** - License minting and ownership transfer happen in one transaction
-- **Extensible to other chains** - Same pattern works on Aptos, Solana, EVM chains with minimal changes
+**Data Economy & Marketplaces**: Physical AI datasets are valuable but hard to monetize without proof of ownership. Our onchain licensing creates a transparent marketplace where creators set terms and buyers get cryptographic proof.
 
-We already have a Solana program deployed on mainnet. Adding Sui took an afternoon because the event model is portable.
+**Provably Authentic**: Every license is an NFT with an immutable creation event. You can prove when it was issued, to whom, and under what terms. No he-said-she-said.
+
+**Interoperable by Design**: Our architecture is chain-agnostic:
+- **Event-driven sync** - Backend listens for `LicenseIssued` events from any chain
+- **Portable verification** - License checks work regardless of which chain issued them
+- **Atomic guarantees** - Transaction either fully succeeds or fully fails
+- **Cross-chain ready** - Same pattern works on Aptos, Solana, EVM chains
+
+We already have a Solana program deployed on mainnet. Adding Sui took an afternoon because events are universal.
+
+**Walrus Integration Opportunity**: Dataset storage could use Walrus for provable, tamper-resistant large file storage. License metadata lives onchain, actual data lives on Walrus, creating end-to-end verifiability.
 
 ## Quick Start
 
@@ -305,6 +317,43 @@ This is hackathon code. It works, but here's what we'd change for production:
 
 See `contracts/README.md` for notes on why contracts should be in a separate repo long-term.
 
+## Walrus Integration
+
+We integrated Walrus decentralized storage for provably authentic dataset hosting:
+
+**Flow**:
+1. Upload dataset file → Walrus storage → Get blob ID
+2. Register blob ID onchain → Sui Move contract → Emit event
+3. Issue license NFT → References Walrus blob ID → Atomic ownership
+4. Retrieve dataset → Walrus blob ID → Tamper-proof verification
+
+**Benefits**:
+- **Provable storage** - Guarantee dataset hasn't been modified since registration
+- **Decentralized** - No single point of failure, censorship-resistant
+- **Cost-efficient** - Store gigabytes of sensor data at reasonable cost
+- **High performance** - Fast reads for AI training pipelines
+
+**How to Upload**:
+```bash
+# Via frontend
+Visit: http://localhost:3000/upload
+# Fill in metadata and drag-drop your dataset file
+
+# Via API
+curl -X POST http://localhost:4000/api/upload-to-walrus \
+  -F "file=@mydata.zip" \
+  -F "title=My Dataset" \
+  -F "description=Physical AI sensor data"
+
+# Returns blob ID for onchain registration
+```
+
+**Demo Script**:
+```bash
+./demo-walrus-flow.sh your-dataset.zip
+# Shows complete upload → register → verify flow
+```
+
 ## Built By
 
-Two engineers who care about datasets being verifiable and licensing being provable. We think AI training data should come with receipts.
+Two engineers who think AI training data should come with cryptographic receipts, not legal PDFs.
