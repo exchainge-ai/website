@@ -9,8 +9,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/server/auth";
-import { buildRegisterDatasetTx, getSuiClient } from "@/lib/blockchain/sui-license";
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import {
+  buildRegisterDatasetTx,
+  getSuiClient,
+  getSuiKeypair,
+} from "@/lib/blockchain/sui-license";
 import { createDataset } from "@/lib/db/datasets";
 import { getSupabaseAdmin } from "@/lib/db/supabase";
 
@@ -49,8 +52,9 @@ const registerSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    // Authenticate user
-    const auth = await requireAuth(request);
+    // TODO: Add authentication for production
+    // For hackathon/demo, allow unauthenticated uploads
+    // const auth = await requireAuth(request);
 
     // Parse and validate request
     const body = await request.json();
@@ -61,99 +65,87 @@ export async function POST(request: Request) {
       title: data.title,
     });
 
-    // Build transaction to register dataset onchain
+    // Step 1: Build and execute Sui blockchain transaction
+    const client = getSuiClient();
+    const keypair = getSuiKeypair();
+
     const tx = buildRegisterDatasetTx({
-      cid: data.blobId, // Use Walrus blob ID as CID
+      blobId: data.blobId,
       title: data.title,
+      description: data.description,
     });
 
-    // Get signer (in production, use user's wallet)
-    const signerKey = process.env.WALRUS_SIGNER_KEY;
-    if (!signerKey) {
-      return NextResponse.json(
-        { error: "WALRUS_SIGNER_KEY not configured" },
-        { status: 500 }
-      );
-    }
+    // Set sender and execute transaction
+    tx.setSender(keypair.toSuiAddress());
 
-    const signer = Ed25519Keypair.fromSecretKey(
-      Buffer.from(signerKey, "base64")
-    );
-
-    // Execute transaction
-    const client = getSuiClient();
+    console.log("Executing Sui transaction...");
     const result = await client.signAndExecuteTransaction({
+      signer: keypair,
       transaction: tx,
-      signer,
       options: {
         showEffects: true,
-        showEvents: true,
+        showObjectChanges: true,
       },
     });
 
-    console.log("Dataset registered onchain:", {
-      digest: result.digest,
-      effects: result.effects?.status,
-    });
+    const txDigest = result.digest;
+    console.log("Transaction executed successfully:", txDigest);
 
-    // Store in database
-    const adminClient = getSupabaseAdmin();
-    const dataset = await createDataset(
-      auth.userId,
-      {
+    // Step 2: Save to Supabase database
+    const supabase = getSupabaseAdmin();
+
+    // Get or create a default user for hackathon demo
+    // In production, use actual authenticated user
+    const { data: defaultUser } = await supabase
+      .from("users")
+      .select("id")
+      .eq("privy_id", "demo-user")
+      .single();
+
+    let userId = defaultUser?.id;
+    if (!userId) {
+      const { data: newUser } = await supabase
+        .from("users")
+        .insert({ privy_id: "demo-user", display_name: "Demo User" })
+        .select("id")
+        .single();
+      userId = newUser?.id;
+    }
+
+    const { data: dataset, error: dbError } = await supabase
+      .from("datasets")
+      .insert({
+        user_id: userId,
         title: data.title,
         description: data.description,
-        category: (data.category as any) || "other",
-        price_usdc: data.priceUsd || 0,
-        license_type: data.licenseType || "view_only",
+        category: data.category || "other",
         file_format: data.filename.split(".").pop() || "unknown",
         size_bytes: data.size,
         size_formatted: formatBytes(data.size),
         storage_provider: "walrus",
-        storage_key: data.blobId, // Walrus blob ID
-        storage_bucket: "walrus-" + (process.env.WALRUS_NETWORK || "testnet"),
+        storage_key: data.blobId, // Use storage_key for blob_id
+        price_usdc: data.priceUsd || 0,
+        license_type: data.licenseType || "view_only",
+        solana_tx_signature: txDigest, // Reuse this field for Sui tx
         status: "live",
-        verification_score: 100, // Auto-approve for demo
-        verification_status: true,
-        published_at: new Date().toISOString(),
-        tags: [],
-        upload_status: "complete",
-        upload_progress: 100,
-        // Licensing defaults
-        commercial_use: false,
-        derivative_works_allowed: false,
-        redistribution_allowed: false,
-        attribution_required: true,
-        ai_training_allowed: true,
-        geographic_restrictions: false,
-        geographic_regions: null,
-        royalty_bps: 0,
-        max_owners: null,
-        license_duration_days: null,
-        thumbnail_url: null,
-        preview_files: null,
-        hardware_verified: false,
-        sp1_commitment: null,
-        sp1_proof_hash: null,
-        is_marketplace_only: false,
-        can_commercial_use: false,
-        can_resale: false,
-        attestations: [],
-        semantic_tags: {},
-        attestation_source: "user",
-      },
-      { client: adminClient }
-    );
+      })
+      .select()
+      .single();
 
-    if (!dataset) {
-      throw new Error("Failed to create dataset in database");
+    if (dbError) {
+      console.error("Failed to save dataset to database:", dbError);
+      throw new Error(`Database error: ${dbError.message}`);
     }
 
-    console.log("Dataset created in database:", dataset.id);
+    console.log("Dataset registered successfully:", {
+      id: dataset.id,
+      blobId: data.blobId,
+      txDigest,
+    });
 
     return NextResponse.json({
       datasetId: dataset.id,
-      txDigest: result.digest,
+      txDigest,
       blobId: data.blobId,
     });
   } catch (error) {

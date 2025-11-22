@@ -1,0 +1,78 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun.lock.tmp
+
+# Next.js
+.next
+.next/*
+out
+build
+dist
+
+# Testing
+coverage
+.nyc_output
+*.test.js
+*.spec.js
+__tests__
+*.test.ts
+*.spec.ts
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+
+# IDE
+.vscode
+.idea
+.cursor
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Development
+.devlogs
+downloads
+supabase
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Misc
+README.md
+*.md
+.prettierrc
+.eslintrc*
+.editorconfig
+biome.json
+
+# Scripts (if not needed in runtime)
+scripts/*.sh
+check-services.sh
+
+# Railway/Deployment
+.railway*
+railway.json
+nixpacks.json
+r2-cors.json

@@ -1,0 +1,25 @@
+{
+  "name": "@exchainge/verifier",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "AI Agent Verifier for physical AI dataset validation",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "test": "bun test",
+    "verify": "bun run src/cli.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "catalog:",
+    "zod": "^3.23.8",
+    "onnxruntime-node": "^1.19.2",
+    "sharp": "^0.33.5",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "bun-types": "latest"
+  }
+}

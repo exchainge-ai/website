@@ -7,9 +7,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/server/auth";
 import { uploadToWalrus, validateWalrusConfig } from "@/lib/walrus/client";
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 
 // Maximum file size: 100MB
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
@@ -31,8 +29,9 @@ const MAX_FILE_SIZE = 100 * 1024 * 1024;
  */
 export async function POST(request: Request) {
   try {
-    // Authenticate user
-    const auth = await requireAuth(request);
+    // TODO: Add authentication for production
+    // For hackathon/demo, allow unauthenticated uploads
+    // const auth = await requireAuth(request);
 
     // Validate Walrus config
     const config = validateWalrusConfig();
@@ -68,31 +67,16 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Get or create Sui keypair for signing
-    // In production, use user's wallet or a service account
-    const signerKey = process.env.WALRUS_SIGNER_KEY;
-    if (!signerKey) {
-      return NextResponse.json(
-        { error: "WALRUS_SIGNER_KEY not configured" },
-        { status: 500 }
-      );
-    }
-
-    const signer = Ed25519Keypair.fromSecretKey(
-      Buffer.from(signerKey, "base64")
-    );
-
     console.log("Uploading to Walrus:", {
       filename: file.name,
       size: file.size,
       type: file.type,
     });
 
-    // Upload to Walrus
+    // Upload to Walrus (HTTP API doesn't require signing)
     const result = await uploadToWalrus({
       fileBuffer: buffer,
       filename: file.name,
-      signer,
     });
 
     console.log("Walrus upload complete:", result);
