@@ -1,21 +1,41 @@
+# Environment files
 .env
 .env.local
 .env.production
 .env.*.local
+.env.main_backup
+
+# SSL certificates
 ssl/
 *.pem
 *.crt
 *.key
+
+# Runtime
 volumes/
 logs/
 *.log
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
+
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
 build/
 .next/
+out/
+
+# Supabase
+**/supabase/.branches
+**/supabase/.temp
