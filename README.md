@@ -23,7 +23,7 @@ Access at http://localhost
 - Privy account and credentials
 - Upstash Redis account
 - Cloudflare R2 bucket
-- Sol testnet RPC or if using SUI then use testnet SUI.
+- Sui testnet RPC or SOL tesnter RPC.
 
 ## Environment Setup
 
