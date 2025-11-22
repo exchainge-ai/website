@@ -12,6 +12,10 @@ const WALRUS_AGGREGATOR_URL =
     : "https://aggregator.walrus-testnet.walrus.space";
 
 /**
+ * TODO: Add duplicate detection by checking if blob ID already exists
+ * TODO: Implement resumable uploads for large files
+ * TODO: Add progress callbacks for upload tracking
+ *
  * Upload file to Walrus decentralized storage
  */
 export async function uploadToWalrus(args: {
@@ -53,6 +57,10 @@ export async function uploadToWalrus(args: {
 }
 
 /**
+ * TODO: Add duplicate detection by checking if blob ID already exists
+ * TODO: Implement resumable uploads for large files
+ * TODO: Add progress callbacks for upload tracking
+ *
  * Retrieve file from Walrus by blob ID
  */
 export async function getFromWalrus(blobId: string): Promise<{
@@ -79,6 +87,10 @@ export async function getFromWalrus(blobId: string): Promise<{
 }
 
 /**
+ * TODO: Add duplicate detection by checking if blob ID already exists
+ * TODO: Implement resumable uploads for large files
+ * TODO: Add progress callbacks for upload tracking
+ *
  * Get public URL for Walrus blob
  */
 export function getWalrusBlobUrl(blobId: string): string {

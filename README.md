@@ -8,10 +8,6 @@ Data marketplace for physical AI datasets with decentralized storage and onchain
 Package: `0x7b79e60b89146533b040ee32ac8e6f6bbcda92169ce1bb70882e59de0062f0cb`
 Explorer: https://suiscan.xyz/testnet/object/0x7b79e60b89146533b040ee32ac8e6f6bbcda92169ce1bb70882e59de0062f0cb
 
-**Solana Program (Mainnet)**
-Address: `3tK3ejf1JWJPei5Nh19Wj3GZtvZ6KoCBfYTnPbhVAHk1`
-Explorer: https://explorer.solana.com/address/3tK3ejf1JWJPei5Nh19Wj3GZtvZ6KoCBfYTnPbhVAHk1
-
 ## Quick Start
 
 ```bash
@@ -88,7 +84,7 @@ contracts/move/              # Sui Move smart contract
 ## Tech Stack
 
 - **Storage:** Walrus decentralized storage (testnet)
-- **Blockchain:** Sui (testnet) + Solana (mainnet)
+- **Blockchain:** Sui (testnet)
 - **Database:** Supabase (PostgreSQL)
 - **Cache:** Upstash Redis
 - **Auth:** Privy
@@ -118,7 +114,6 @@ GET /api/datasets
 
 See [WALRUS_SETUP.md](WALRUS_SETUP.md) for Walrus configuration and deployment notes.
 
-## Repos
+## Note 
 
-- This monorepo: https://github.com/exchainge-ai/website
-- Solana program: https://github.com/exchainge-ai/exchainge-program
+As shown in demo, this Sui + walrus storage integration does work. If for some reason you have any issues, email me at rtavarez.cs@gmail.com!

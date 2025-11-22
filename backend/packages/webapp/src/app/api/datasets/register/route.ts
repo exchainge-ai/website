@@ -1,3 +1,7 @@
+// TODO: Add download access control - verify license ownership before allowing download
+// TODO: Implement license verification endpoint
+// TODO: Add earnings tracking for dataset creators
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {

@@ -14,10 +14,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 // @jsx React.createElement
 // @jsxFrag React.Fragment
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import type { DatasetStatus, ExtendedDataset } from "@/lib/types/dataset";
 import { DATASET_STATUS } from "@/lib/types/dataset";
+import { PurchaseLicenseModal } from "@/components/modals/PurchaseLicenseModal";
 
 interface DatasetCardProps {
   dataset: ExtendedDataset;
@@ -28,6 +29,7 @@ interface DatasetCardProps {
  */
 const DatasetCard: React.FC<DatasetCardProps> = ({ dataset }) => {
   const router = useRouter();
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const { authenticated, login } = usePrivy();
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -287,11 +289,7 @@ const DatasetCard: React.FC<DatasetCardProps> = ({ dataset }) => {
                   login();
                   return;
                 }
-                // In a real app, this would open a purchase flow
-                // For marketplace items, show a simple alert for demo purposes
-                alert(
-                  `This would open the purchase flow for "${dataset.title}" in a real application.`,
-                );
+                setShowPurchaseModal(true);
               }}
               className={styles.actionButton}
             >
@@ -302,6 +300,18 @@ const DatasetCard: React.FC<DatasetCardProps> = ({ dataset }) => {
           )}
         </div>
       </div>
+
+      {/* Purchase Modal */}
+      <PurchaseLicenseModal
+        isOpen={showPurchaseModal}
+        onClose={() => setShowPurchaseModal(false)}
+        dataset={{
+          id: dataset.id,
+          title: dataset.title,
+          price: dataset.price || "$0.1",
+          blobId: dataset.storageCID,
+        }}
+      />
     </div>
   );
 };

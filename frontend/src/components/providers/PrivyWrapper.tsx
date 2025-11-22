@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { PrivyErrorBoundary } from "./PrivyErrorBoundary";
 import { SolanaProviders } from "./SolanaProviders";
 import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
+import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
+import { getFullnodeUrl } from "@mysten/sui/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 type PrivyModule = typeof import("@privy-io/react-auth");
 
@@ -16,6 +19,9 @@ export function PrivyWrapper({ children }: PrivyWrapperProps) {
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || '';
   const clientId = process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID || '';
   const [privyModule, setPrivyModule] = useState<PrivyModule | null>(null);
+
+  const queryClient = useMemo(() => new QueryClient(), []);
+  const suiNetwork = (process.env.NEXT_PUBLIC_SUI_NETWORK as "testnet" | "mainnet") || "testnet";
 
   const solanaConnectors = useMemo(() => {
     if (typeof window === "undefined") {
@@ -63,9 +69,27 @@ export function PrivyWrapper({ children }: PrivyWrapperProps) {
           clientId={clientId}
           config={{
             embeddedWallets: {
-              createOnLogin: "off",
-            } as any,
+              createOnLogin: "users-without-wallets",
+              requireUserPasswordOnCreate: false,
+              noPromptOnSignature: false,
+            },
             loginMethods: ["email", "wallet", "google", "github"],
+            supportedChains: [
+              {
+                id: 101, // Solana mainnet
+                name: "solana",
+                network: "mainnet-beta",
+                nativeCurrency: { name: "SOL", symbol: "SOL", decimals: 9 },
+                rpcUrls: { default: { http: ["https://api.mainnet-beta.solana.com"] } },
+              },
+              {
+                id: "sui:testnet" as any,
+                name: "Sui Testnet",
+                network: "testnet",
+                nativeCurrency: { name: "SUI", symbol: "SUI", decimals: 9 },
+                rpcUrls: { default: { http: [getFullnodeUrl("testnet")] } },
+              },
+            ],
             externalWallets: {
               solana: solanaConnectors
                 ? {
@@ -97,9 +121,15 @@ export function PrivyWrapper({ children }: PrivyWrapperProps) {
             },
           }}
         >
-          <SolanaProviders>
-            <div suppressHydrationWarning>{children}</div>
-          </SolanaProviders>
+          <QueryClientProvider client={queryClient}>
+            <SuiClientProvider networks={{ testnet: { url: getFullnodeUrl("testnet") } }} defaultNetwork="testnet">
+              <WalletProvider autoConnect>
+                <SolanaProviders>
+                  <div suppressHydrationWarning>{children}</div>
+                </SolanaProviders>
+              </WalletProvider>
+            </SuiClientProvider>
+          </QueryClientProvider>
         </PrivyProvider>
       );
     })()
