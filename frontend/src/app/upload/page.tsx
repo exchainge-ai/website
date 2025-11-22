@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { WalrusUploadSuccessModal } from "@/components/modals/WalrusUploadSuccessModal";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
@@ -27,6 +28,17 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [error, setError] = useState("");
+
+  // Receipt modal state
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<{
+    blobId: string;
+    txDigest?: string;
+    datasetId?: string;
+    title: string;
+    filename: string;
+    size: number;
+  } | null>(null);
 
   // Handle file selection
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -104,12 +116,20 @@ export default function UploadPage() {
       const registerData = await registerRes.json();
       console.log("Dataset registered:", registerData);
 
-      setUploadProgress("Success! Redirecting...");
+      setUploadProgress("Success!");
 
-      // Wait a moment then redirect to marketplace
-      setTimeout(() => {
-        router.push("/marketplace");
-      }, 1500);
+      // Show receipt modal
+      setReceiptData({
+        blobId: uploadData.blobId,
+        txDigest: registerData.txDigest,
+        datasetId: registerData.datasetId,
+        title,
+        filename: file.name,
+        size: file.size,
+      });
+      setShowReceipt(true);
+      setUploading(false);
+      setUploadProgress("");
     } catch (err) {
       console.error("Upload error:", err);
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -273,6 +293,23 @@ export default function UploadPage() {
         Your dataset will be stored on Walrus (decentralized storage) and
         registered onchain via Sui Move contract.
       </p>
+
+      {/* Receipt Modal */}
+      {receiptData && (
+        <WalrusUploadSuccessModal
+          isOpen={showReceipt}
+          onClose={() => {
+            setShowReceipt(false);
+            setReceiptData(null);
+          }}
+          blobId={receiptData.blobId}
+          txDigest={receiptData.txDigest}
+          datasetId={receiptData.datasetId}
+          title={receiptData.title}
+          filename={receiptData.filename}
+          size={receiptData.size}
+        />
+      )}
     </div>
   );
 }
