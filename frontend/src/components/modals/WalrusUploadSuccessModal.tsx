@@ -24,13 +24,16 @@ export function WalrusUploadSuccessModal({
   filename,
   size,
 }: WalrusUploadSuccessModalProps) {
-  const [copiedBlobId, setCopiedBlobId] = useState(false);
   const [copiedTxHash, setCopiedTxHash] = useState(false);
 
   const SUI_NETWORK = process.env.NEXT_PUBLIC_SUI_NETWORK || "testnet";
+  const WALRUS_NETWORK = process.env.NEXT_PUBLIC_WALRUS_NETWORK || "testnet";
+
   const explorerUrl = txDigest
     ? `https://suiscan.xyz/${SUI_NETWORK}/tx/${txDigest}`
     : null;
+
+  const walruscanUrl = `https://walruscan.com/${WALRUS_NETWORK}/blob/${blobId}`;
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -51,15 +54,10 @@ export function WalrusUploadSuccessModal({
     });
   };
 
-  const copyToClipboard = (text: string, type: "blobId" | "txHash") => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    if (type === "blobId") {
-      setCopiedBlobId(true);
-      setTimeout(() => setCopiedBlobId(false), 2000);
-    } else {
-      setCopiedTxHash(true);
-      setTimeout(() => setCopiedTxHash(false), 2000);
-    }
+    setCopiedTxHash(true);
+    setTimeout(() => setCopiedTxHash(false), 2000);
   };
 
   const saveReceipt = () => {
@@ -164,30 +162,19 @@ Uploaded via Walrus Decentralized Storage
               </div>
 
               {/* Blob ID */}
-              <div className="flex items-start justify-between gap-4 pt-2 border-t border-gray-800">
-                <div className="flex items-center gap-2 text-gray-400 shrink-0">
-                  <Hash className="w-4 h-4" />
-                  <span>Blob ID</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <code
-                    className="text-gray-300 font-mono text-xs truncate max-w-[200px]"
-                    title={blobId}
-                  >
-                    {blobId.slice(0, 16)}...{blobId.slice(-8)}
-                  </code>
-                  <button
-                    onClick={() => copyToClipboard(blobId, "blobId")}
-                    className="p-1 hover:bg-gray-800 rounded transition-colors"
-                    title="Copy blob ID"
-                  >
-                    {copiedBlobId ? (
-                      <CheckCircle className="w-3.5 h-3.5 text-brand-green" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-gray-500" />
-                    )}
-                  </button>
-                </div>
+              <div className="pt-2 border-t border-gray-800">
+                <a
+                  href={walruscanUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-2 rounded-md hover:bg-gray-800/50 transition-colors group"
+                >
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Hash className="w-4 h-4" />
+                    <span>View on Walrus Explorer</span>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-400 transition-colors" />
+                </a>
               </div>
 
               {/* Blockchain TX */}
