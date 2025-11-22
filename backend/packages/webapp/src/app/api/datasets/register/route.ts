@@ -1,20 +1,10 @@
-/**
- * Dataset Registration API
- *
- * POST /api/datasets/register
- * Registers a dataset onchain after Walrus upload.
- * Links Walrus blob ID to Sui Move contract.
- */
-
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAuth } from "@/lib/server/auth";
 import {
   buildRegisterDatasetTx,
   getSuiClient,
   getSuiKeypair,
 } from "@/lib/blockchain/sui-license";
-import { createDataset } from "@/lib/db/datasets";
 import { getSupabaseAdmin } from "@/lib/db/supabase";
 
 const registerSchema = z.object({
@@ -29,73 +19,31 @@ const registerSchema = z.object({
 });
 
 /**
- * POST /api/datasets/register
- *
- * Body:
- * {
- *   blobId: string,        // Walrus blob ID
- *   title: string,
- *   description: string,
- *   filename: string,
- *   size: number,
- *   category?: string,
- *   priceUsd?: number,
- *   licenseType?: string
- * }
- *
- * Returns:
- * {
- *   datasetId: string,
- *   txDigest: string,
- *   blobId: string
- * }
+ * Register dataset onchain and save to database
  */
 export async function POST(request: Request) {
   try {
-    // TODO: Add authentication for production
-    // For hackathon/demo, allow unauthenticated uploads
-    // const auth = await requireAuth(request);
-
-    // Parse and validate request
     const body = await request.json();
     const data = registerSchema.parse(body);
 
-    console.log("Registering dataset onchain:", {
-      blobId: data.blobId,
-      title: data.title,
-    });
-
-    // Step 1: Build and execute Sui blockchain transaction
     const client = getSuiClient();
     const keypair = getSuiKeypair();
-
     const tx = buildRegisterDatasetTx({
       blobId: data.blobId,
       title: data.title,
       description: data.description,
     });
 
-    // Set sender and execute transaction
     tx.setSender(keypair.toSuiAddress());
-
-    console.log("Executing Sui transaction...");
     const result = await client.signAndExecuteTransaction({
       signer: keypair,
       transaction: tx,
-      options: {
-        showEffects: true,
-        showObjectChanges: true,
-      },
+      options: { showEffects: true, showObjectChanges: true },
     });
 
     const txDigest = result.digest;
-    console.log("Transaction executed successfully:", txDigest);
-
-    // Step 2: Save to Supabase database
     const supabase = getSupabaseAdmin();
 
-    // Get or create a default user for hackathon demo
-    // In production, use actual authenticated user
     const { data: defaultUser } = await supabase
       .from("users")
       .select("id")
@@ -123,25 +71,18 @@ export async function POST(request: Request) {
         size_bytes: data.size,
         size_formatted: formatBytes(data.size),
         storage_provider: "walrus",
-        storage_key: data.blobId, // Use storage_key for blob_id
+        storage_key: data.blobId,
         price_usdc: data.priceUsd || 0,
         license_type: data.licenseType || "view_only",
-        solana_tx_signature: txDigest, // Reuse this field for Sui tx
+        solana_tx_signature: txDigest,
         status: "live",
       })
       .select()
       .single();
 
     if (dbError) {
-      console.error("Failed to save dataset to database:", dbError);
       throw new Error(`Database error: ${dbError.message}`);
     }
-
-    console.log("Dataset registered successfully:", {
-      id: dataset.id,
-      blobId: data.blobId,
-      txDigest,
-    });
 
     return NextResponse.json({
       datasetId: dataset.id,
@@ -156,7 +97,6 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error("Dataset registration failed:", error);
     return NextResponse.json(
       {
         error: "Failed to register dataset",
@@ -167,11 +107,10 @@ export async function POST(request: Request) {
   }
 }
 
-// Helper function to format bytes
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`;
 }
