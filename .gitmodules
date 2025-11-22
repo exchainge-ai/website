@@ -1,0 +1,6 @@
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/exchainge-ai/frontend.git
+[submodule "backend"]
+	path = backend
+	url = https://github.com/exchainge-ai/backend.git

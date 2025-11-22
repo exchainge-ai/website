@@ -5,12 +5,14 @@ Docker Compose setup for running ExchAInge frontend and backend with nginx rever
 ## Quick Start
 
 ```bash
-git clone <your-repo> exchainge
-cd exchainge
+git clone --recurse-submodules https://github.com/exchainge-ai/website
+cd website
 cp .env.example .env
 # Edit .env with your credentials
 docker compose up -d
 ```
+
+If already cloned: `git submodule update --init --recursive`
 
 Access at http://localhost
 
@@ -21,7 +23,7 @@ Access at http://localhost
 - Privy account and credentials
 - Upstash Redis account
 - Cloudflare R2 bucket
-- Solana RPC endpoint
+- Sol testnet RPC or if using SUI then use testnet SUI.
 
 ## Environment Setup
 
