@@ -83,6 +83,6 @@ Check transactions:
 - Check SUPABASE_SERVICE_ROLE_KEY has write permissions
 
 **Connection refused:**
-- Verify backend running on port 3001
+- Verify backend running on port 4000
 - Verify frontend running on port 3000
-- Check NEXT_PUBLIC_API_BASE_URL matches backend port
+- Check NEXT_PUBLIC_API_BASE_URL points to backend

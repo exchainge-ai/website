@@ -28,12 +28,16 @@ export function WalrusUploadSuccessModal({
 
   const SUI_NETWORK = process.env.NEXT_PUBLIC_SUI_NETWORK || "testnet";
   const WALRUS_NETWORK = process.env.NEXT_PUBLIC_WALRUS_NETWORK || "testnet";
+  const SUI_PACKAGE_ID =
+    process.env.NEXT_PUBLIC_SUI_PACKAGE_ID ||
+    "0x7b79e60b89146533b040ee32ac8e6f6bbcda92169ce1bb70882e59de0062f0cb";
 
   const explorerUrl = txDigest
     ? `https://suiscan.xyz/${SUI_NETWORK}/tx/${txDigest}`
     : null;
 
   const walruscanUrl = `https://walruscan.com/${WALRUS_NETWORK}/blob/${blobId}`;
+  const contractUrl = `https://suiscan.xyz/${SUI_NETWORK}/object/${SUI_PACKAGE_ID}`;
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -188,12 +192,28 @@ Uploaded via Walrus Decentralized Storage
                   >
                     <div className="flex items-center gap-2 text-gray-400">
                       <Database className="w-4 h-4" />
-                      <span>View on Sui Explorer</span>
+                      <span>View Transaction on Sui</span>
                     </div>
                     <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-400 transition-colors" />
                   </a>
                 </div>
               )}
+
+              {/* Smart Contract */}
+              <div className="pt-2 border-t border-gray-800">
+                <a
+                  href={contractUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-2 rounded-md hover:bg-gray-800/50 transition-colors group"
+                >
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Database className="w-4 h-4" />
+                    <span>View Smart Contract</span>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-400 transition-colors" />
+                </a>
+              </div>
 
               {!txDigest && (
                 <div className="pt-2 border-t border-gray-800">
