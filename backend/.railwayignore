@@ -1,6 +1,0 @@
-# Force Railway to use Dockerfile
-node_modules
-.next
-.git
-.env.local
-*.log
