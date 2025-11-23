@@ -114,6 +114,21 @@ GET /api/datasets
 
 See [WALRUS_SETUP.md](WALRUS_SETUP.md) for Walrus configuration and deployment notes.
 
+## Features
+
+- **Walrus Storage** - Datasets stored on decentralized storage, up to 13.3 GiB per file
+- **Sui Smart Contracts** - On-chain dataset registry and NFT licenses for purchases
+- **Privy Auth** - Login with email, socials, or wallets
+- **Direct Downloads** - Buy once, download directly from Walrus
+- **Platform-Sponsored Transactions** - No gas fees for demo users
+
+**Coming Soon:**
+- x402 integration which will be integrated into this branch(walrus) from x402 branch
+- LLM that verifies dataset contents(already implemented an early version, needs improvement but will also be copied into walrus branch).
+
+Essentially, features are 80% done just needs improvements and battle tested. Then implementations should be smooth to integrate into walrus then into main branch soon!
+
+
 ## Note 
 
 As shown in demo, this Sui + walrus storage integration does work. If for some reason you have any issues, email me at rtavarez.cs@gmail.com!
